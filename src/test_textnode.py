@@ -122,11 +122,6 @@ class TestTextNode(unittest.TestCase):
     def test_extract_markdown_multiple_images(self):
         matches = extract_markdown_images("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
         self.assertListEqual([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")], matches)
-
-    def test_extract_markdown_no_images(self):
-        text = "This is text with a link [to boot dev](https://www.boot.dev)"
-        with self.assertRaises(Exception):
-            extract_markdown_images(text)
         
     def test_extract_markdown_links(self):
         matches = extract_markdown_links("This is text with a link [to boot dev](https://www.boot.dev)")
@@ -136,10 +131,125 @@ class TestTextNode(unittest.TestCase):
         matches = extract_markdown_links("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)")
         self.assertListEqual([("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")], matches)
 
-    def test_extract_markdown_no_links(self):
-        text = "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
-        with self.assertRaises(Exception):
-            extract_markdown_links(text)
+    def test_split_multiple_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and only one image.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and only one image.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images_none(self):
+        node = TextNode("This is text with no images", TextType.TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([TextNode("This is text with no images", TextType.TEXT)], new_nodes)
+
+    def test_split_images_multiple_nodes(self):
+        node1 = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and only one image.",
+            TextType.TEXT
+        )
+        node2 = TextNode(
+            "This is text with another ![image](https://i.imgur.com/3elNhQu.png).",
+            TextType.TEXT
+        )
+        node3 = TextNode("This is bold text.", TextType.BOLD)
+        new_nodes = split_nodes_image([node1, node2, node3])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and only one image.", TextType.TEXT),
+                TextNode("This is text with another ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+                TextNode(".", TextType.TEXT),
+                TextNode("This is bold text.", TextType.BOLD)
+            ],
+            new_nodes
+        )
+
+    def test_split_link(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and only one link.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and only one link.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_split_multiple_links(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode(
+                    "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+                ),
+            ],
+            new_nodes
+        )
+
+    def test_split_links_multiple_nodes(self):
+        node1 = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev).",
+            TextType.TEXT,
+        )
+        node2 = TextNode("This is plain text.", TextType.TEXT)
+        node3 = TextNode("This is bold text.", TextType.BOLD)
+        node4 = TextNode("This is text with another link [to boot dev](https://www.boot.dev)", TextType.TEXT)
+        new_nodes = split_nodes_link([node1, node2, node3, node4])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"),
+                TextNode(".", TextType.TEXT),
+                TextNode("This is plain text.", TextType.TEXT),
+                TextNode("This is bold text.", TextType.BOLD),
+                TextNode("This is text with another link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev")
+            ],
+            new_nodes
+        )
+
 
 
 if __name__ == "__main__":
