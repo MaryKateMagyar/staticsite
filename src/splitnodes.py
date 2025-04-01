@@ -1,7 +1,6 @@
 import re
 from textnode import TextNode, TextType
 
-
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     node_list = []
 
@@ -121,3 +120,5 @@ def text_to_textnodes(text):
     node_list = split_nodes_link(node_list)
 
     return node_list
+
+

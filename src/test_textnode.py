@@ -2,6 +2,7 @@ import unittest
 
 from textnode import *
 from splitnodes import *
+from blocktype import *
 
 
 class TestTextNode(unittest.TestCase):
@@ -268,6 +269,70 @@ class TestTextNode(unittest.TestCase):
             ],
             new_nodes
         )
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_block_to_block_type_heading(self):
+        block = "###### This is a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_block_to_block_type_heading_toomuchhash(self):
+        block = "####### This is not a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_heading_nospace(self):
+        block = "######This is not a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_heading_leadingspace(self):
+        block = " ###### This is a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_heading_blocks(self):
+        self.assertEqual(block_to_block_type("# Heading 1"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("### Heading 3"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("###### Heading 6"), BlockType.HEADING)
+        self.assertNotEqual(block_to_block_type("####### Invalid"), BlockType.HEADING)  # More than 6 '#'
+
+    def test_code_blocks(self):
+        self.assertEqual(block_to_block_type("```\nprint('Hello!')\n```"), BlockType.CODE)
+        self.assertNotEqual(block_to_block_type("```print('Oops')"), BlockType.CODE)  # Missing closing ```
+    
+    def test_quote_blocks(self):
+        self.assertEqual(block_to_block_type("> This is a quote."), BlockType.QUOTE)
+        self.assertEqual(block_to_block_type("> Line 1\n> Line 2"), BlockType.QUOTE)
+        self.assertNotEqual(block_to_block_type(">Valid\nInvalid"), BlockType.QUOTE)  # Mixed validity
+    
+    def test_unordered_list_blocks(self):
+        self.assertEqual(block_to_block_type("- Item 1"), BlockType.UNORDERED_LIST)
+        self.assertEqual(block_to_block_type("- Item 1\n- Item 2"), BlockType.UNORDERED_LIST)
+        self.assertNotEqual(block_to_block_type("- Valid\nInvalid"), BlockType.UNORDERED_LIST)  # Mixed validity
+    
+    def test_ordered_list_blocks(self):
+        self.assertEqual(block_to_block_type("1. Step 1"), BlockType.ORDERED_LIST)
+        self.assertEqual(block_to_block_type("1. Step 1\n2. Step 2"), BlockType.ORDERED_LIST)
+        self.assertEqual(block_to_block_type("1. Step 1\n\n2. Step 2"), BlockType.ORDERED_LIST)      
+
+
+
 
 
 
