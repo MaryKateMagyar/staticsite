@@ -47,15 +47,23 @@ def generate_page(from_path="content/index.md", template_path="template.html", d
     with open(dest_path, "w") as page:
         page.write(page_contents)
 
+def generate_pages_recursive(dir_path_content="content", template_path="template.html", dest_dir_path="public"):
+    if os.path.isfile(dir_path_content):
+        generate_page(dir_path_content, template_path, dest_dir_path)
+        return
 
+    dir_paths = os.listdir(dir_path_content)
+    for path in dir_paths:
+        if os.path.isfile(path):
+            generate_page(path, template_path, dest_dir_path)
+        
+        new_dir_path = os.path.join(dir_path_content, path)
+        new_dest_path = os.path.join(dest_dir_path, path).replace(".md", ".html")
+        generate_pages_recursive(new_dir_path, template_path, new_dest_path)
 
 def main():
     recursive_copy()
-    generate_page()
-    generate_page("content/blog/glorfindel/index.md", "template.html", "public/blog/glorfindel/index.html")
-    generate_page("content/blog/tom/index.md", "template.html", "public/blog/tom/index.html")
-    generate_page("content/blog/majesty/index.md", "template.html", "public/blog/majesty/index.html")
-    generate_page("content/contact/index.md", "template.html", "public/contact/index.html")
+    generate_pages_recursive()
 
 
 main()
