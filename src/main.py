@@ -1,4 +1,5 @@
 from textnode import *
+from htmlnode import *
 import shutil 
 import os
 
@@ -27,10 +28,29 @@ def recursive_copy(source="static", destination="public"):
     
     return
         
+def generate_page(from_path="content/index.md", template_path="template.html", dest_path="public/index.html"):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}.")
+    
+    with open(from_path) as f:
+        markdown_contents = f.read()
+
+    with open(template_path) as t:
+        template_contents = t.read()
+
+    content = markdown_to_html_node(markdown_contents).to_html()
+    title = extract_title(markdown_contents)
+    
+    page_contents = template_contents.replace("{{ Title }}", title).replace("{{ Content }}", content)
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+
+    with open(dest_path, "w") as page:
+        page.write(page_contents)
 
 
 
 def main():
     recursive_copy()
+    generate_page()
 
 main()
