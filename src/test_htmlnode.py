@@ -3,7 +3,7 @@ import unittest
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
 
-class TestTextNode(unittest.TestCase):
+class TestLeafNode(unittest.TestCase):
     def test_eq_repr(self):
         node = HTMLNode("p", "This is a HTML node")
         text = "HTMLNode(p, This is a HTML node, None, None)"
@@ -40,8 +40,7 @@ class TestTextNode(unittest.TestCase):
 
     def test_leaf_to_html_no_value2(self):
         node = LeafNode("p", "")
-        with self.assertRaises(ValueError):
-            node.to_html()
+        self.assertEqual(node.to_html(), "<p></p>")
 
     def test_to_html_with_children(self):
         child_node = LeafNode("span", "child")
