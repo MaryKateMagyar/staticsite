@@ -1,5 +1,5 @@
 import unittest
-from markdown_blocks import markdown_to_blocks, block_to_block_type, BlockType, markdown_to_html_node
+from markdown_blocks import markdown_to_blocks, block_to_block_type, BlockType, markdown_to_html_node, extract_title
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestTextNode(unittest.TestCase):
@@ -195,24 +195,24 @@ print("Hello **world**")
             "<div><h1>Main Heading</h1><h2>Secondary Heading</h2><p>This is a paragraph with <b>bold</b> and <i>italic</i> and <code>code</code> elements.</p><blockquote>This is a blockquote with <b>formatting</b> inside it.</blockquote><h3>Lists Below</h3><ul><li>Unordered item 1</li><li>Unordered item 2 with <i>emphasis</i></li></ul><ol><li>Ordered item 1</li><li>Ordered item 2 with <code>code</code></li></ol><pre><code>def example_function():\n# This code block should not process markdown\nprint(\"Hello **world**\")\n</code></pre></div>"
         )
     
-    # def test_simple_title(self):
-    #     markdown = "# Simple Title"
-    #     self.assertEqual(extract_title(markdown), "Simple Title")
+    def test_simple_title(self):
+        markdown = "# Simple Title"
+        self.assertEqual(extract_title(markdown), "Simple Title")
     
-    # def test_title_with_whitespace(self):
-    #     markdown = "#    Title with spaces    "
-    #     self.assertEqual(extract_title(markdown), "Title with spaces")
+    def test_title_with_whitespace(self):
+        markdown = "#    Title with spaces    "
+        self.assertEqual(extract_title(markdown), "Title with spaces")
     
-    # def test_multiline_with_title(self):
-    #     markdown = "Some text\n# The Title\nMore text"
-    #     self.assertEqual(extract_title(markdown), "The Title")
+    def test_multiline_with_title(self):
+        markdown = "Some text\n  # The Title\nMore text"
+        self.assertEqual(extract_title(markdown), "The Title")
     
-    # def test_no_title(self):
-    #     markdown = "No title in this text"
-    #     with self.assertRaises(Exception):
-    #         extract_title(markdown)
+    def test_no_title(self):
+        markdown = "No title in this text"
+        with self.assertRaises(Exception):
+            extract_title(markdown)
     
-    # def test_wrong_header_level(self):
-    #     markdown = "## This is h2, not h1"
-    #     with self.assertRaises(Exception):
-    #         extract_title(markdown)
+    def test_wrong_header_level(self):
+        markdown = "## This is h2, not h1"
+        with self.assertRaises(Exception):
+            extract_title(markdown)

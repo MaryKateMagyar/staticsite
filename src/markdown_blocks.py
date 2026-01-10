@@ -62,8 +62,10 @@ def block_to_block_type(block):
         return BlockType.CODE
     elif block.startswith("> "):
         lines = block.splitlines()
-        for line in lines[1:]:
-            if not line.startswith("> "):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
+            if len(line) > 1 and not line.startswith("> "):
                 return BlockType.PARAGRAPH
         return BlockType.QUOTE
     elif block.startswith("- "):
@@ -155,7 +157,7 @@ def block_to_html_node(block):
             lines = block.splitlines()
             stripped_lines = []
             for line in lines:
-                stripped_lines.append(line.removeprefix("> "))
+                stripped_lines.append(line.removeprefix(">").strip())
             processed_block = "\n".join(stripped_lines)
         else:
             raise Exception("invalid BlockType")
@@ -175,3 +177,10 @@ def markdown_to_html_node(markdown):
         children.append(block_to_html_node(block))
     return ParentNode("div", children)
 
+def extract_title(markdown):
+    lines = markdown.splitlines()
+    for line in lines:
+        line = line.strip()
+        if line.startswith("# "):
+            return line[2:].strip()
+    raise Exception("no title found")
