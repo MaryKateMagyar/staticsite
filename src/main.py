@@ -7,7 +7,7 @@ from markdown_blocks import *
 
 def main():
     recursive_copy()
-    generate_page()
+    generate_pages_recursive()
 
 def recursive_copy(source="static", desitination="public"):
     if not os.path.exists(source):
@@ -50,6 +50,20 @@ def generate_page(from_path="content/index.md", template_path="template.html", d
 
     with open(dest_path, "w") as d:
         d.write(page_contents)
+
+def generate_pages_recursive(dir_path_content="content", template_path="template.html", dest_dir_path="public"):
+    if os.path.isfile(dir_path_content):
+        generate_page(dir_path_content, template_path, dest_dir_path)
+        return
+    
+    dir_paths = os.listdir(dir_path_content)
+    for dir_path in dir_paths:
+        if os.path.isfile(dir_path):
+            generate_page(dir_path, template_path, dest_dir_path)
+
+        new_dir_path = os.path.join(dir_path_content, dir_path)
+        new_dest_path = os.path.join(dest_dir_path, dir_path).replace(".md", ".html")
+        generate_pages_recursive(new_dir_path, template_path, new_dest_path)
 
 
 if __name__ == "__main__":
